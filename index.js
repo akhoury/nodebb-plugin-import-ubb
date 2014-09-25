@@ -292,6 +292,8 @@ var logPrefix = '[nodebb-plugin-import-wefrag]';
             // see https://github.com/akhoury/nodebb-plugin-import#important-note-on-topics-and-posts
             + 'WHERE topic_id IS NOT NULL ';
 
+        Exporter.log(query);
+
         if (!Exporter.connection) {
             err = {error: 'MySQL connection is not setup. Run setup(config) first'};
             Exporter.error(err.error);
