@@ -279,7 +279,7 @@ var logPrefix = '[nodebb-plugin-import-wefrag]';
             + 'title as _subject, '
 
             + 'body as _content, '
-            + 'user_id as _uid, '
+            + 'user_id as _uid '
 
             // I couldn't tell what's the different, they're all HTML to me
             // + 'POST_MARKUP_TYPE as _markup, '
