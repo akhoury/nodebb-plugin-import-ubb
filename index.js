@@ -17,13 +17,13 @@ var logPrefix = '[nodebb-plugin-import-wefrag]';
             user: config.dbuser || config.user || 'root',
             password: config.dbpass || config.pass || config.password || '',
             port: config.dbport || config.port || 3306,
-            database: config.dbname || config.name || config.database || 'ubb'
+            database: config.dbname || config.name || config.database || 'wefrag'
         };
 
         Exporter.log(_config);
 
         Exporter.config(_config);
-        Exporter.config('prefix', config.prefix || config.tablePrefix || 'ubbt_');
+        Exporter.config('prefix', config.prefix || config.tablePrefix || '');
 
         Exporter.connection = mysql.createConnection(_config);
         Exporter.connection.connect();
