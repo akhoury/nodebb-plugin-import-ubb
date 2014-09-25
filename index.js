@@ -198,7 +198,7 @@ var logPrefix = '[nodebb-plugin-import-wefrag]';
             // + prefix + 'POSTS.POST_PARENT_ID as _post_replying_to, '
 
             // this should be == to the _tid on top of this query
-            + prefix + 'posts.topic_id as _post_tid, '
+            // + prefix + 'posts.topic_id as _post_tid, '
 
             // and there is the content I need !!
             + prefix + 'posts.body as _content '
@@ -207,7 +207,7 @@ var logPrefix = '[nodebb-plugin-import-wefrag]';
             // see
             // + 'WHERE ' + prefix + 'forums.id=' + prefix + 'posts.forum_id '
             // and this one must be a parent
-            // + 'AND ' + prefix + 'POSTS.POST_PARENT_ID=0 ';
+            + ' WHERE ' + prefix + 'posts.topic_id=NULL ';
 
         Exporter.log(query);
 
@@ -271,23 +271,23 @@ var logPrefix = '[nodebb-plugin-import-wefrag]';
         var prefix = Exporter.config('prefix');
         var startms = +new Date();
         var query =
-            'SELECT POST_ID as _pid, '
-            + 'POST_PARENT_ID as _post_replying_to, '
-            + 'TOPIC_ID as _tid, '
-            + 'POST_POSTED_TIME as _timestamp, '
+            'SELECT id as _pid, '
+            // + 'POST_PARENT_ID as _post_replying_to, '
+            + 'topic_id as _tid, '
+            + 'created_at as _timestamp, '
             // not being used
-            + 'POST_SUBJECT as _subject, '
+            + 'title as _subject, '
 
-            + 'POST_BODY as _content, '
-            + 'USER_ID as _uid, '
+            + 'body as _content, '
+            + 'user_id as _uid, '
 
             // I couldn't tell what's the different, they're all HTML to me
-            + 'POST_MARKUP_TYPE as _markup, '
+            // + 'POST_MARKUP_TYPE as _markup, '
 
             // maybe use this one to skip
-            + 'POST_IS_APPROVED as _approved '
+            // + 'POST_IS_APPROVED as _approved '
 
-            + 'FROM ' + prefix + 'POSTS '
+            + 'FROM ' + prefix + 'posts '
             // this post cannot be a its topic's main post, it MUST be a reply-post
             // see https://github.com/akhoury/nodebb-plugin-import#important-note-on-topics-and-posts
             + 'WHERE POST_PARENT_ID > 0 ';
