@@ -57,7 +57,7 @@ var logPrefix = '[nodebb-plugin-import-wefrag]';
             // + prefix + 'USER_PROFILE.USER_TOTAL_RATES as _profileviews, '
             // + prefix + 'USER_PROFILE.USER_BIRTHDAY as _birthday '
 
-            + 'FROM ' + prefix + 'users, ' + prefix + 'users_infos'
+            + 'FROM ' + prefix + 'users, ' + prefix + 'users_infos '
             + 'WHERE ' + prefix + 'users.id = ' + prefix + 'users_infos.user_id ';
 
         Exporter.log(query);
@@ -125,6 +125,8 @@ var logPrefix = '[nodebb-plugin-import-wefrag]';
             + prefix + 'forums.description as _description, '
             + prefix + 'forums.created_at as _timestamp '
             + 'FROM ' + prefix + 'forums ';
+
+        Exporter.log(query);
 
         if (!Exporter.connection) {
             err = {error: 'MySQL connection is not setup. Run setup(config) first'};
@@ -206,6 +208,8 @@ var logPrefix = '[nodebb-plugin-import-wefrag]';
             // + 'WHERE ' + prefix + 'forums.id=' + prefix + 'posts.forum_id '
             // and this one must be a parent
             // + 'AND ' + prefix + 'POSTS.POST_PARENT_ID=0 ';
+
+        Exporter.log(query);
 
         if (!Exporter.connection) {
             err = {error: 'MySQL connection is not setup. Run setup(config) first'};
