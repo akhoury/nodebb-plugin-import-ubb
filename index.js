@@ -3,7 +3,7 @@ var async = require('async');
 var mysql = require('mysql');
 var _ = require('underscore');
 var noop = function(){};
-var logPrefix = '[nodebb-plugin-import-ubb]';
+var logPrefix = '[nodebb-plugin-import-wefrag]';
 
 (function(Exporter) {
 
@@ -368,7 +368,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
         args.unshift(logPrefix);
         console.log.apply(console, args);
     };
-    
+
     Exporter.error = function() {
         var args = _.toArray(arguments);
         args.unshift(logPrefix);

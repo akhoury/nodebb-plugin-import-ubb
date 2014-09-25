@@ -1,17 +1,17 @@
 {
-    "name": "nodebb-plugin-import-ubb",
+    "name": "nodebb-plugin-import-wefrag",
     "version": "0.1.1",
-    "description": "a UBB forum exporter to import-ready files",
+    "description": "a Wefrag forum exporter to import-ready files",
     "main": "./index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/akhoury/nodebb-plugin-import-ubb"
+        "url": "https://github.com/lohek/nodebb-plugin-import-wefrag"
     },
     "keywords": [
-        "ubb",
+        "wefrag",
         "nodebb",
         "plugin",
         "migrate",
@@ -20,12 +20,12 @@
         "import"
     ],
     "author": {
-        "name": "akhoury",
-        "email": "bentael@gmail.com"
+        "name": "lohek",
+        "email": "nainpuissant@gmail.com"
     },
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/akhoury/nodebb-plugin-import-ubb/issues"
+        "url": "https://github.com/lohek/nodebb-plugin-import-wefrag/issues"
     },
     "dependencies": {
         "underscore": "~1.6.0",
