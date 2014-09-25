@@ -60,6 +60,8 @@ var logPrefix = '[nodebb-plugin-import-wefrag]';
             + 'FROM ' + prefix + 'users, ' + prefix + 'users_infos'
             + 'WHERE ' + prefix + 'users.id = ' + prefix + 'users_infos.user_id ';
 
+        Exporter.log(query);
+
         if (!Exporter.connection) {
             err = {error: 'MySQL connection is not setup. Run setup(config) first'};
             Exporter.error(err.error);
