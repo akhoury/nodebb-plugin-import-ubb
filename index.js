@@ -203,11 +203,11 @@ var logPrefix = '[nodebb-plugin-import-wefrag]';
             // and there is the content I need !!
             + prefix + 'posts.body as _content '
 
-            + 'FROM ' + prefix + 'posts ';
+            + 'FROM ' + prefix + 'posts '
             // see
             // + 'WHERE ' + prefix + 'forums.id=' + prefix + 'posts.forum_id '
             // and this one must be a parent
-            + ' WHERE ' + prefix + 'posts.topic_id=NULL ';
+            + ' WHERE ' + prefix + 'posts.topic_id IS NULL';
 
         Exporter.log(query);
 
@@ -290,7 +290,7 @@ var logPrefix = '[nodebb-plugin-import-wefrag]';
             + 'FROM ' + prefix + 'posts '
             // this post cannot be a its topic's main post, it MUST be a reply-post
             // see https://github.com/akhoury/nodebb-plugin-import#important-note-on-topics-and-posts
-            + 'WHERE POST_PARENT_ID > 0 ';
+            + 'WHERE topic_id IS NOT NULL ';
 
         if (!Exporter.connection) {
             err = {error: 'MySQL connection is not setup. Run setup(config) first'};
