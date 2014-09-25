@@ -48,7 +48,7 @@ var logPrefix = '[nodebb-plugin-import-wefrag]';
             // + prefix + 'USERS.USER_IS_banned as _banned, '
             + prefix + 'users.email as _email, '
             // + prefix + 'USER_PROFILE.USER_SIGNATURE as _signature, '
-            + prefix + 'user_infos.website as _website, '
+            + prefix + 'user_infos.website as _website '
             // + prefix + 'USER_PROFILE.USER_OCCUPATION as _occupation, '
             // + prefix + 'USER_PROFILE.USER_LOCATION as _location, '
             // + prefix + 'USER_PROFILE.USER_AVATAR as _picture, '
