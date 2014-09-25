@@ -48,7 +48,7 @@ var logPrefix = '[nodebb-plugin-import-wefrag]';
             // + prefix + 'USERS.USER_IS_banned as _banned, '
             + prefix + 'users.email as _email, '
             // + prefix + 'USER_PROFILE.USER_SIGNATURE as _signature, '
-            + prefix + 'users_infos.website as _website, '
+            + prefix + 'user_infos.website as _website, '
             // + prefix + 'USER_PROFILE.USER_OCCUPATION as _occupation, '
             // + prefix + 'USER_PROFILE.USER_LOCATION as _location, '
             // + prefix + 'USER_PROFILE.USER_AVATAR as _picture, '
@@ -57,8 +57,8 @@ var logPrefix = '[nodebb-plugin-import-wefrag]';
             // + prefix + 'USER_PROFILE.USER_TOTAL_RATES as _profileviews, '
             // + prefix + 'USER_PROFILE.USER_BIRTHDAY as _birthday '
 
-            + 'FROM ' + prefix + 'users, ' + prefix + 'users_infos '
-            + 'WHERE ' + prefix + 'users.id = ' + prefix + 'users_infos.user_id ';
+            + 'FROM ' + prefix + 'users, ' + prefix + 'user_infos '
+            + 'WHERE ' + prefix + 'users.id = ' + prefix + 'user_infos.user_id ';
 
         Exporter.log(query);
 
