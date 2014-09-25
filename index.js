@@ -39,26 +39,26 @@ var logPrefix = '[nodebb-plugin-import-wefrag]';
         var prefix = Exporter.config('prefix');
         var startms = +new Date();
         var query = 'SELECT '
-            + prefix + 'USERS.USER_ID as _uid, '
-            + prefix + 'USERS.USER_LOGIN_NAME as _username, '
-            + prefix + 'USERS.USER_DISPLAY_NAME as _alternativeUsername, '
-            + prefix + 'USERS.USER_REGISTRATION_EMAIL as _registrationEmail, '
-            + prefix + 'USERS.USER_MEMBERSHIP_LEVEL as _level, '
-            + prefix + 'USERS.USER_REGISTERED_ON as _joindate, '
-            + prefix + 'USERS.USER_IS_banned as _banned, '
-            + prefix + 'USER_PROFILE.USER_REAL_EMAIL as _email, '
-            + prefix + 'USER_PROFILE.USER_SIGNATURE as _signature, '
-            + prefix + 'USER_PROFILE.USER_HOMEPAGE as _website, '
-            + prefix + 'USER_PROFILE.USER_OCCUPATION as _occupation, '
-            + prefix + 'USER_PROFILE.USER_LOCATION as _location, '
-            + prefix + 'USER_PROFILE.USER_AVATAR as _picture, '
-            + prefix + 'USER_PROFILE.USER_TITLE as _title, '
-            + prefix + 'USER_PROFILE.USER_RATING as _reputation, '
-            + prefix + 'USER_PROFILE.USER_TOTAL_RATES as _profileviews, '
-            + prefix + 'USER_PROFILE.USER_BIRTHDAY as _birthday '
+            + prefix + 'users.id as _uid, '
+            + prefix + 'users.login as _username, '
+            // + prefix + 'USERS.USER_DISPLAY_NAME as _alternativeUsername, '
+            + prefix + 'users.email as _registrationEmail, '
+            // + prefix + 'USERS.USER_MEMBERSHIP_LEVEL as _level, '
+            + prefix + 'users.created_at as _joindate, '
+            // + prefix + 'USERS.USER_IS_banned as _banned, '
+            + prefix + 'users.email as _email, '
+            // + prefix + 'USER_PROFILE.USER_SIGNATURE as _signature, '
+            + prefix + 'users_infos.website as _website, '
+            // + prefix + 'USER_PROFILE.USER_OCCUPATION as _occupation, '
+            // + prefix + 'USER_PROFILE.USER_LOCATION as _location, '
+            // + prefix + 'USER_PROFILE.USER_AVATAR as _picture, '
+            // + prefix + 'USER_PROFILE.USER_TITLE as _title, '
+            // + prefix + 'USER_PROFILE.USER_RATING as _reputation, '
+            // + prefix + 'USER_PROFILE.USER_TOTAL_RATES as _profileviews, '
+            // + prefix + 'USER_PROFILE.USER_BIRTHDAY as _birthday '
 
-            + 'FROM ' + prefix + 'USERS, ' + prefix + 'USER_PROFILE '
-            + 'WHERE ' + prefix + 'USERS.USER_ID = ' + prefix + 'USER_PROFILE.USER_ID ';
+            + 'FROM ' + prefix + 'users, ' + prefix + 'users_infos'
+            + 'WHERE ' + prefix + 'users.id = ' + prefix + 'users_infos.user_id ';
 
         if (!Exporter.connection) {
             err = {error: 'MySQL connection is not setup. Run setup(config) first'};
