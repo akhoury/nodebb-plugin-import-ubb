@@ -118,11 +118,11 @@ var logPrefix = '[nodebb-plugin-import-wefrag]';
         var prefix = Exporter.config('prefix');
         var startms = +new Date();
         var query = 'SELECT '
-            + prefix + 'FORUMS.FORUM_ID as _cid, '
-            + prefix + 'FORUMS.FORUM_TITLE as _name, '
-            + prefix + 'FORUMS.FORUM_DESCRIPTION as _description, '
-            + prefix + 'FORUMS.FORUM_CREATED_ON as _timestamp '
-            + 'FROM ' + prefix + 'FORUMS ';
+            + prefix + 'forums.id as _cid, '
+            + prefix + 'forums.title as _name, '
+            + prefix + 'forums.description as _description, '
+            + prefix + 'forums.created_at as _timestamp '
+            + 'FROM ' + prefix + 'forums ';
 
         if (!Exporter.connection) {
             err = {error: 'MySQL connection is not setup. Run setup(config) first'};
@@ -166,44 +166,44 @@ var logPrefix = '[nodebb-plugin-import-wefrag]';
         var startms = +new Date();
         var query =
             'SELECT '
-            + prefix + 'TOPICS.TOPIC_ID as _tid, '
+            + prefix + 'posts.id as _tid, '
 
             // aka category id, or cid
-            + prefix + 'TOPICS.FORUM_ID as _cid, '
+            + prefix + 'posts.forum_id as _cid, '
 
             // this is the 'parent-post'
             // see https://github.com/akhoury/nodebb-plugin-import#important-note-on-topics-and-posts
             // I don't really need it since I just do a simple join and get its content, but I will include for the reference
             // remember: this post is EXCLUDED in the getPosts() function
-            + prefix + 'TOPICS.POST_ID as _pid, '
+            + prefix + 'posts.topic_id as _pid, '
 
-            + prefix + 'TOPICS.USER_ID as _uid, '
-            + prefix + 'TOPICS.TOPIC_VIEWS as _viewcount, '
-            + prefix + 'TOPICS.TOPIC_SUBJECT as _title, '
-            + prefix + 'TOPICS.TOPIC_CREATED_TIME as _timestamp, '
+            + prefix + 'posts.user_id as _uid, '
+            // + prefix + 'TOPICS.TOPIC_VIEWS as _viewcount, '
+            + prefix + 'posts.title as _title, '
+            + prefix + 'posts.created_at as _timestamp, '
 
             // maybe use that to skip
-            + prefix + 'TOPICS.TOPIC_IS_APPROVED as _approved, '
+            // + prefix + 'TOPICS.TOPIC_IS_APPROVED as _approved, '
 
             // todo:  figure out what this means,
-            + prefix + 'TOPICS.TOPIC_STATUS as _status, '
+            + prefix + 'posts.is_locked as _status, '
 
-            + prefix + 'TOPICS.TOPIC_IS_STICKY as _pinned, '
+            + prefix + 'posts.is_sticky as _pinned, '
 
             // I dont need it, but if it should be 0 per UBB logic, since this post is not replying to anything, it's the parent-post of the topic
-            + prefix + 'POSTS.POST_PARENT_ID as _post_replying_to, '
+            // + prefix + 'POSTS.POST_PARENT_ID as _post_replying_to, '
 
             // this should be == to the _tid on top of this query
-            + prefix + 'POSTS.TOPIC_ID as _post_tid, '
+            + prefix + 'posts.topic_id as _post_tid, '
 
             // and there is the content I need !!
-            + prefix + 'POSTS.POST_BODY as _content '
+            + prefix + 'posts.body as _content '
 
-            + 'FROM ' + prefix + 'TOPICS, ' + prefix + 'POSTS '
+            + 'FROM ' + prefix + 'posts ';
             // see
-            + 'WHERE ' + prefix + 'TOPICS.TOPIC_ID=' + prefix + 'POSTS.TOPIC_ID '
+            // + 'WHERE ' + prefix + 'forums.id=' + prefix + 'posts.forum_id '
             // and this one must be a parent
-            + 'AND ' + prefix + 'POSTS.POST_PARENT_ID=0 ';
+            // + 'AND ' + prefix + 'POSTS.POST_PARENT_ID=0 ';
 
         if (!Exporter.connection) {
             err = {error: 'MySQL connection is not setup. Run setup(config) first'};
