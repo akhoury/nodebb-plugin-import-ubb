@@ -179,7 +179,7 @@ var logPrefix = '[nodebb-plugin-import-wefrag]';
             // see https://github.com/akhoury/nodebb-plugin-import#important-note-on-topics-and-posts
             // I don't really need it since I just do a simple join and get its content, but I will include for the reference
             // remember: this post is EXCLUDED in the getPosts() function
-            + prefix + 'posts.topic_id as _pid, '
+            // + prefix + 'posts.topic_id as _pid, '
 
             + prefix + 'posts.user_id as _uid, '
             // + prefix + 'TOPICS.TOPIC_VIEWS as _viewcount, '
@@ -190,7 +190,7 @@ var logPrefix = '[nodebb-plugin-import-wefrag]';
             // + prefix + 'TOPICS.TOPIC_IS_APPROVED as _approved, '
 
             // todo:  figure out what this means,
-            + prefix + 'posts.is_locked as _status, '
+            + prefix + 'posts.is_locked as _locked, '
 
             + prefix + 'posts.is_sticky as _pinned, '
 
@@ -207,7 +207,7 @@ var logPrefix = '[nodebb-plugin-import-wefrag]';
             // see
             // + 'WHERE ' + prefix + 'forums.id=' + prefix + 'posts.forum_id '
             // and this one must be a parent
-            + ' WHERE ' + prefix + 'posts.topic_id IS NULL';
+            + ' WHERE ' + prefix + 'posts.title IS NOT NULL';
 
         Exporter.log(query);
 
@@ -276,7 +276,7 @@ var logPrefix = '[nodebb-plugin-import-wefrag]';
             + 'topic_id as _tid, '
             + 'created_at as _timestamp, '
             // not being used
-            + 'title as _subject, '
+            // + 'title as _subject, '
 
             + 'body as _content, '
             + 'user_id as _uid '
@@ -290,7 +290,7 @@ var logPrefix = '[nodebb-plugin-import-wefrag]';
             + 'FROM ' + prefix + 'posts '
             // this post cannot be a its topic's main post, it MUST be a reply-post
             // see https://github.com/akhoury/nodebb-plugin-import#important-note-on-topics-and-posts
-            + 'WHERE topic_id IS NOT NULL ';
+            + 'WHERE title IS NULL ';
 
         Exporter.log(query);
 
