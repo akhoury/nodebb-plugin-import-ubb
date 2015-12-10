@@ -52,13 +52,15 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
             + prefix + 'USER_PROFILE.USER_OCCUPATION as _occupation, '
             + prefix + 'USER_PROFILE.USER_LOCATION as _location, '
             + prefix + 'USER_PROFILE.USER_AVATAR as _picture, '
-            + prefix + 'USER_PROFILE.USER_TITLE as _title, '
+            + prefix + 'USER_PROFILE.USER_TITLE as _badge, '
             + prefix + 'USER_PROFILE.USER_RATING as _reputation, '
             + prefix + 'USER_PROFILE.USER_TOTAL_RATES as _profileviews, '
-            + prefix + 'USER_PROFILE.USER_BIRTHDAY as _birthday '
+            + prefix + 'USER_PROFILE.USER_BIRTHDAY as _birthday, '
+            + prefix + 'BANNED_USERS.USER_ID as _banned '
 
-            + 'FROM ' + prefix + 'USERS, ' + prefix + 'USER_PROFILE '
-            + 'WHERE ' + prefix + 'USERS.USER_ID = ' + prefix + 'USER_PROFILE.USER_ID '
+            + 'FROM ' + prefix + 'USERS '
+			+ 'JOIN ' + prefix + 'USER_PROFILE ON ' + prefix + 'USER_PROFILE.USER_ID = ' + prefix + 'USERS.USER_ID '
+			+ 'LEFT JOIN ' + prefix + 'BANNED_USERS ON ' + prefix + 'BANNED_USERS.USER_ID = ' + prefix + 'USERS.USER_ID '
             + (start >= 0 && limit >= 0 ? 'LIMIT ' + start + ',' + limit : '');
 
 
@@ -78,20 +80,18 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
                 //normalize here
                 var map = {};
                 rows.forEach(function(row) {
-                    // nbb forces signatures to be less than 150 chars
-                    // keeping it HTML see https://github.com/akhoury/nodebb-plugin-import#markdown-note
-                    row._signature = Exporter.truncateStr(row._signature || '', 150);
-    
                     // from unix timestamp (s) to JS timestamp (ms)
                     row._joindate = ((row._joindate || 0) * 1000) || startms;
-    
+
                     // lower case the email for consistency
                     row._email = (row._email || '').toLowerCase();
-    
+
                     // I don't know about you about I noticed a lot my users have incomplete urls, urls like: http://
                     row._picture = Exporter.validateUrl(row._picture);
                     row._website = Exporter.validateUrl(row._website);
-    
+
+					row._banned = row._banned ? 1 : 0;
+
                     map[row._uid] = row;
                 });
 
@@ -99,9 +99,8 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
             });
     };
 
-
     Exporter.getCategories = function(callback) {
-        return Exporter.getPaginatedCategories(0, -1, callback);    
+        return Exporter.getPaginatedCategories(0, -1, callback);
     };
     Exporter.getPaginatedCategories = function(start, limit, callback) {
         callback = !_.isFunction(callback) ? noop : callback;
@@ -137,7 +136,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
                     row._name = row._name || 'Untitled Category '
                     row._description = row._description || 'No decsciption available';
                     row._timestamp = ((row._timestamp || 0) * 1000) || startms;
-    
+
                     map[row._cid] = row;
                 });
 
@@ -157,42 +156,17 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
         var query =
             'SELECT '
             + prefix + 'TOPICS.TOPIC_ID as _tid, '
-
-            // aka category id, or cid
+			+ prefix + 'TOPICS.TOPIC_SUBJECT as _title, '
             + prefix + 'TOPICS.FORUM_ID as _cid, '
-
-            // this is the 'parent-post'
-            // see https://github.com/akhoury/nodebb-plugin-import#important-note-on-topics-and-posts
-            // I don't really need it since I just do a simple join and get its content, but I will include for the reference
-            // remember: this post is EXCLUDED in the getPosts() function
-            + prefix + 'TOPICS.POST_ID as _pid, '
-
             + prefix + 'TOPICS.USER_ID as _uid, '
+			+ prefix + 'POSTS.POST_BODY as _content, '
             + prefix + 'TOPICS.TOPIC_VIEWS as _viewcount, '
-            + prefix + 'TOPICS.TOPIC_SUBJECT as _title, '
             + prefix + 'TOPICS.TOPIC_CREATED_TIME as _timestamp, '
-
-            // maybe use that to skip
-            + prefix + 'TOPICS.TOPIC_IS_APPROVED as _approved, '
-
-            // todo:  figure out what this means,
-            + prefix + 'TOPICS.TOPIC_STATUS as _status, '
-
             + prefix + 'TOPICS.TOPIC_IS_STICKY as _pinned, '
-
-            // I dont need it, but if it should be 0 per UBB logic, since this post is not replying to anything, it's the parent-post of the topic
-            + prefix + 'POSTS.POST_PARENT_ID as _post_replying_to, '
-
-            // this should be == to the _tid on top of this query
-            + prefix + 'POSTS.TOPIC_ID as _post_tid, '
-
-            // and there is the content I need !!
-            + prefix + 'POSTS.POST_BODY as _content '
-
-            + 'FROM ' + prefix + 'TOPICS, ' + prefix + 'POSTS '
-            // see
-            + 'WHERE ' + prefix + 'TOPICS.TOPIC_ID=' + prefix + 'POSTS.TOPIC_ID '
-            // and this one must be a parent
+			+ prefix + 'POSTS.POST_LAST_EDITED_TIME as _edited, '
+			+ prefix + 'POSTS.POST_POSTER_IP as _ip '
+            + 'FROM ' + prefix + 'TOPICS '
+			+ 'JOIN ' + prefix + 'POSTS ON ' + prefix + 'POSTS.TOPIC_ID=' + prefix + 'TOPICS.TOPIC_ID '
             + 'AND ' + prefix + 'POSTS.POST_PARENT_ID=0 '
             + (start >= 0 && limit >= 0 ? 'LIMIT ' + start + ',' + limit : '');
 
@@ -215,7 +189,8 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
                 rows.forEach(function(row) {
                     row._title = row._title ? row._title[0].toUpperCase() + row._title.substr(1) : 'Untitled';
                     row._timestamp = ((row._timestamp || 0) * 1000) || startms;
-    
+                    row._edited = row._edited ? row._edited * 1000 : row._edited;
+
                     map[row._tid] = row;
                 });
 
@@ -234,20 +209,13 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
         var startms = +new Date();
         var query =
             'SELECT POST_ID as _pid, '
-            + 'POST_PARENT_ID as _post_replying_to, '
-            + 'TOPIC_ID as _tid, '
-            + 'POST_POSTED_TIME as _timestamp, '
-            // not being used
-            + 'POST_SUBJECT as _subject, '
-
-            + 'POST_BODY as _content, '
-            + 'USER_ID as _uid, '
-
-            // I couldn't tell what's the different, they're all HTML to me
-            + 'POST_MARKUP_TYPE as _markup, '
-
-            // maybe use this one to skip
-            + 'POST_IS_APPROVED as _approved '
+			+ 'USER_ID as _uid, '
+			+ 'TOPIC_ID as _tid, '
+			+ 'POST_BODY as _content, '
+			+ 'POST_POSTED_TIME as _timestamp, '
+			+ 'POST_PARENT_ID as _toPid, '
+            + 'POST_LAST_EDITED_TIME as _edited, '
+            + 'POST_POSTER_IP as _ip '
 
             + 'FROM ' + prefix + 'POSTS '
             // this post cannot be a its topic's main post, it MUST be a reply-post
@@ -274,6 +242,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
                 rows.forEach(function(row) {
                     row._content = row._content || '';
                     row._timestamp = ((row._timestamp || 0) * 1000) || startms;
+					row._edited = row._edited ? row._edited * 1000 : row._edited;
                     map[row._pid] = row;
                 });
 
@@ -311,7 +280,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
             }
         ], callback);
     };
-    
+
     Exporter.paginatedTestrun = function(config, callback) {
         async.series([
             function(next) {
@@ -346,7 +315,7 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
         args.unshift(logPrefix);
         console.log.apply(console, args);
     };
-    
+
     Exporter.error = function() {
         var args = _.toArray(arguments);
         args.unshift(logPrefix);
