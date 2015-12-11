@@ -56,11 +56,13 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 				+ prefix + 'USER_PROFILE.USER_RATING as _reputation, '
 				+ prefix + 'USER_PROFILE.USER_TOTAL_RATES as _profileviews, '
 				+ prefix + 'USER_PROFILE.USER_BIRTHDAY as _birthday, '
-				+ prefix + 'BANNED_USERS.USER_ID as _banned '
+				+ prefix + 'BANNED_USERS.USER_ID as _banned, '
+				+ prefix + 'USER_GROUPS.GROUP_ID as _gid '
 
 				+ 'FROM ' + prefix + 'USERS '
 				+ 'JOIN ' + prefix + 'USER_PROFILE ON ' + prefix + 'USER_PROFILE.USER_ID = ' + prefix + 'USERS.USER_ID '
 				+ 'LEFT JOIN ' + prefix + 'BANNED_USERS ON ' + prefix + 'BANNED_USERS.USER_ID = ' + prefix + 'USERS.USER_ID '
+				+ 'LEFT JOIN ' + prefix + 'USER_GROUPS ON ' + prefix + 'USER_GROUPS.USER_ID = ' + prefix + 'USERS.USER_ID '
 				+ (start >= 0 && limit >= 0 ? 'LIMIT ' + start + ',' + limit : '');
 
 
@@ -92,6 +94,50 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 
 						row._banned = row._banned ? 1 : 0;
 
+						if (row._gid) {
+							row._groups = [row._gid];
+						}
+						delete row._gid;
+
+
+						map[row._uid] = row;
+					});
+
+					callback(null, map);
+				});
+	};
+
+	Exporter.getPaginatedGroups = function(start, limit, callback) {
+		callback = !_.isFunction(callback) ? noop : callback;
+
+		var err;
+		var prefix = Exporter.config('prefix');
+		var startms = +new Date();
+		var query = 'SELECT '
+				+ prefix + 'GROUPS.GROUP_ID as _gid, '
+				+ prefix + 'GROUPS.GROUP_NAME as _name, '
+				+ prefix + 'USER_GROUPS.USER_ID AS _ownerUid '
+				+ 'FROM ' + prefix + 'GROUPS '
+				+ 'JOIN ' + prefix + 'USER_GROUPS ON ' + prefix + 'USER_GROUPS.GROUP_ID=' + prefix + 'GROUPS.GROUP_ID '
+				+ 'GROUP BY ' + prefix + 'GROUPS.GROUP_ID '
+				+ (start >= 0 && limit >= 0 ? 'LIMIT ' + start + ',' + limit : '');
+
+
+		if (!Exporter.connection) {
+			err = {error: 'MySQL connection is not setup. Run setup(config) first'};
+			Exporter.error(err.error);
+			return callback(err);
+		}
+
+		Exporter.connection.query(query,
+				function(err, rows) {
+					if (err) {
+						Exporter.error(err);
+						return callback(err);
+					}
+					//normalize here
+					var map = {};
+					rows.forEach(function(row) {
 						map[row._uid] = row;
 					});
 
