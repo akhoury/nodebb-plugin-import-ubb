@@ -107,6 +107,10 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 				});
 	};
 
+	Exporter.getGroups = function(callback) {
+		return Exporter.getPaginatedGroups(0, -1, callback);
+	};
+
 	Exporter.getPaginatedGroups = function(start, limit, callback) {
 		callback = !_.isFunction(callback) ? noop : callback;
 
@@ -296,6 +300,112 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 				});
 	};
 
+
+	// todo: possible memory issues
+	function getConversations (callback) {
+		callback = !_.isFunction(callback) ? noop : callback;
+
+		var prefix = Exporter.config('prefix');
+		var startms = +new Date();
+
+		var query = 'SELECT '
+				+ prefix + 'PRIVATE_MESSAGE_USERS.TOPIC_ID as _cvid, '
+				+ prefix + 'PRIVATE_MESSAGE_USERS.USER_ID as _uid1, '
+				+ prefix + 'PRIVATE_MESSAGE_POSTS.USER_ID as _uid2 '
+				+ 'FROM ' + prefix + 'PRIVATE_MESSAGE_USERS '
+				+ 'JOIN ' + prefix + 'PRIVATE_MESSAGE_POSTS '
+				+ 'ON ' + prefix + 'PRIVATE_MESSAGE_POSTS.TOPIC_ID = ' + prefix + 'PRIVATE_MESSAGE_USERS.TOPIC_ID '
+				+ 'AND ' + prefix + 'PRIVATE_MESSAGE_POSTS.USER_ID != ' + prefix + 'PRIVATE_MESSAGE_USERS.USER_ID '
+
+		var parse = function(v) { return parseInt(v, 10); };
+
+		Exporter.connection.query(query,
+				function(err, rows) {
+					if (err) {
+						Exporter.error(err);
+						return callback(err);
+					}
+
+					//normalize here
+					var map = {};
+					rows.forEach(function(row) {
+						if (!row._uid1 || !row._uid2) {
+							return;
+						}
+						row._uids = {};
+						row._uids[row._uid1] = row._uid2;
+						row._uids[row._uid2] = row._uid1
+
+						map[row._cvid] = row;
+					});
+
+					callback(null, map);
+				});
+
+	}
+
+	Exporter.getMessages = function(callback) {
+		return Exporter.getPaginatedMessages(0, -1, callback);
+	};
+	Exporter.getPaginatedMessages = function(start, limit, callback) {
+		callback = !_.isFunction(callback) ? noop : callback;
+
+		if (!Exporter.connection) {
+			Exporter.setup(Exporter.config());
+		}
+
+		var prefix = Exporter.config('prefix');
+		var startms = +new Date();
+
+		var query = 'SELECT '
+				+ prefix + 'PRIVATE_MESSAGE_POSTS.POST_ID as _mid, '
+				+ prefix + 'PRIVATE_MESSAGE_POSTS.POST_BODY as _content, '
+				+ prefix + 'PRIVATE_MESSAGE_POSTS.USER_ID as _fromuid, '
+				+ prefix + 'PRIVATE_MESSAGE_POSTS.TOPIC_ID as _cvid, '
+				+ prefix + 'PRIVATE_MESSAGE_POSTS.POST_TIME as _timestamp '
+
+				+ 'FROM ' + prefix + 'PRIVATE_MESSAGE_POSTS '
+				+ (start >= 0 && limit >= 0 ? 'LIMIT ' + start + ',' + limit : '');
+
+		getConversations(function(err, conversations) {
+			if (err) {
+				return callback(err);
+			}
+
+			Exporter.connection.query(query,
+					function(err, rows) {
+						if (err) {
+							Exporter.error(err);
+							return callback(err);
+						}
+
+						//normalize here
+						var map = {};
+						rows.forEach(function(row) {
+
+							var conversation = conversations[row._cvid];
+							if (!conversation) {
+								return;
+							}
+
+							row._touid = conversation._uids[row._fromuid];
+							if (!row._touid) {
+								return;
+							}
+
+							row._content = row._content || '';
+							row._timestamp = ((row._timestamp || 0) * 1000) || startms;
+
+							delete row._cvid;
+
+							map[row._mid] = row;
+						});
+
+						callback(null, map);
+					});
+		});
+	};
+
 	Exporter.teardown = function(callback) {
 		Exporter.log('teardown');
 		Exporter.connection.end();
@@ -313,6 +423,9 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 				Exporter.getUsers(next);
 			},
 			function(next) {
+				Exporter.getGroups(next);
+			},
+			function(next) {
 				Exporter.getCategories(next);
 			},
 			function(next) {
@@ -320,6 +433,9 @@ var logPrefix = '[nodebb-plugin-import-ubb]';
 			},
 			function(next) {
 				Exporter.getPosts(next);
+			},
+			function(next) {
+				Exporter.getMessages(next);
 			},
 			function(next) {
 				Exporter.teardown(next);
